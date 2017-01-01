@@ -1,0 +1,30 @@
+{
+  "name": "free-write",
+  "version": "0.3.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack ./client/free-write.js client/bundle.js",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wilburrr90/free-write.git"
+  },
+  "keywords": [
+    "writing",
+    "node"
+  ],
+  "author": "William Dickerson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wilburrr90/free-write/issues"
+  },
+  "homepage": "https://github.com/wilburrr90/free-write#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "moment": "^2.15.1"
+  }
+}

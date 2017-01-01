@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Free Write</title>
+  <meta name="viewport" content="width=device-width">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <link rel="stylesheet" href="bootstrap-flex.min.css">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.4/js/bootstrap.min.js" integrity="sha384-VjEeINv9OSwtWFLAtmc4JCtEJXXBub00gtSnszmspDLCtC0I4z4nqz7rEFbIZLLU" crossorigin="anonymous"></script>
+  <link href="free-write.css" rel="stylesheet" type="text/css">
+</head> 
+<body>
+
+<form action="export" method="post">
+  <div class='row flex-items-xs-center'>
+    <div id='toolbar' class='col-xs-11 col-sm-10 col-lg-9'>
+      <div>
+        <button id='blur-btn' type="button" class="btn btn-primary">Blur</button>
+        <input type='submit' value='Save' class="btn btn-success" />
+      </div>
+      <div class='logo'>Free Write v0.3.0-alpha</div>
+    </div>
+  </div>
+  <div id='main' class='row flex-items-xs-center'>
+    <textarea id='workspace' class='col-xs-11 col-sm-10 col-lg-9' name='user-text' placeholder='Type here. Click "blur" to show/hide text.' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+  </div>
+</form>
+
+<script src="bundle.js"></script>
+</body>
+</html>
