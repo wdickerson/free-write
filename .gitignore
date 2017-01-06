@@ -2,3 +2,5 @@ releases/
 node_modules/
 .sass-cache/
 *.css.map
+free-write-config.js
+npm-debug.log
