@@ -3,7 +3,16 @@ html, body {
   background-color: #f4f4f4;
 }
 
+.user-info-header {
+  display: none;
+}
+
+.user-info-container {
+  height: 1.5rem;
+}
+
 #workspace {
+  color: black;
   height: calc(100vh - 3.5rem);
   padding: 2em;
   font-size: 1.2rem;
@@ -27,4 +36,8 @@ html, body {
 
 .logo {
   color: #466bb0;
+}
+
+#stories-list > * {
+  cursor: pointer;
 }
