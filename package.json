@@ -5,12 +5,13 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack ./client/free-write.js client/bundle.js",
-    "start": "node app.js"
+    "build": "webpack ./client/free-write.js client/dist/bundle.js",
+    "start": "nodemon --ignore './client/dist' -e js,html,css --exec 'npm run watch'",
+    "watch": "npm run build && node ./app.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wilburrr90/free-write.git"
+    "url": "git+https://github.com/wdickerson/free-write.git"
   },
   "keywords": [
     "writing",
@@ -19,13 +20,19 @@
   "author": "William Dickerson",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wilburrr90/free-write/issues"
+    "url": "https://github.com/wdickerson/free-write/issues"
   },
-  "homepage": "https://github.com/wilburrr90/free-write#readme",
+  "homepage": "https://github.com/wdickerson/free-write#readme",
   "dependencies": {
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
+    "express-session": "^1.14.2",
     "moment": "^2.15.1",
-    "mongodb": "^2.2.16"
+    "mongodb": "^2.2.16",
+    "passport": "^0.3.2",
+    "passport-facebook": "^2.1.1",
+    "passport-local": "^1.0.0",
+    "webpack": "^2.5.1",
+    "xhr": "^2.4.0"
   }
 }
