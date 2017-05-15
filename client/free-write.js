@@ -1,10 +1,17 @@
 const xhr = require('xhr');
+const wsTitle = document.getElementById('workspace-title');
 const ws = document.getElementById('workspace');
 const blurBtn = document.getElementById('blur-btn');
+const saveBtn = document.getElementById('save-btn');
+const deleteBtn = document.getElementById('delete-btn');
+const newStoryBtn = document.getElementById('new-story-btn');
 const storiesList = document.getElementById('stories-list');
 const userHeader = document.getElementById('user-header');
 const displayName = document.getElementById('display-name');
 const guestHeader = document.getElementById('guest-header');
+
+let currentStory = {};
+let stories = [];
 
 let blurred = false;
 blurBtn.addEventListener('click', () => {
@@ -13,27 +20,79 @@ blurBtn.addEventListener('click', () => {
   blurred = !blurred;
 });
 
-xhr({
-  uri: '/get-stories',
-  json: true,
-}, (err, resp, body) => {
-  body.forEach(s => {
-    const newItem = document.createElement('a');
-    newItem.innerHTML = s.name;
-    newItem.className = 'dropdown-item';
-    newItem.addEventListener('click', () => ws.value = s.text);
-    storiesList.appendChild(newItem);
-  });  
+saveBtn.addEventListener('click', saveStory);
+deleteBtn.addEventListener('click', deleteStory);
+
+newStoryBtn.addEventListener('click', () => {
+  ws.value = '';
+  wsTitle.value = '';
+  currentStory = {};
 });
 
-xhr({
-    uri: '/authenticate',
+function loadStory(story) {
+  currentStory = story;
+  wsTitle.value = story.title;
+  ws.value = story.text;
+  console.log(currentStory);
+}
+
+function saveStory() {
+  currentStory.title = wsTitle.value;
+  currentStory.text = ws.value;
+  
+  xhr({
+    uri: '/save-story',
+    method: 'post',
     json: true,
-}, (err, resp, body) => {
-    if (body.isUser) {
-      userHeader.style.display = 'block';
-      displayName.innerHTML = body.name;
-    } else {
-      guestHeader.style.display = 'block';
+    body: currentStory,
+  }, (err, resp, body) => {
+    if (currentStory._id == null && body != null) {
+      currentStory._id = body;
+      stories.push(currentStory);
     }
+    populateStoriesList();
+  });
+}
+
+function deleteStory() {
+  console.log('in deleteStory');
+  ws.value = '';
+  wsTitle.value = '';
+  
+  if (currentStory._id != null) {
+    console.log('delete a saved story');
+    xhr({
+      uri: '/delete-story',
+      method: 'post',
+      json: true,
+      body: { _id: currentStory._id },
+    }, (err, resp, body) => {
+      stories = stories.filter(s => s._id !== currentStory._id);
+      currentStory = {};
+      populateStoriesList();
+    });
+  }
+}
+
+function populateStoriesList(newList = false) {
+  if (newList) stories = newList;
+  storiesList.innerHTML = '';
+  stories.sort((a, b) => a.title.localeCompare(b.title));
+  stories.forEach(s => {
+    const newItem = document.createElement('a');
+    newItem.innerHTML = s.title;
+    newItem.className = 'dropdown-item';
+    newItem.addEventListener('click', () => loadStory(s));
+    storiesList.appendChild(newItem);
+  });  
+}
+
+const json = { json: true };
+xhr.get('/get-user-stories', json, (err, resp, body) => populateStoriesList(body));
+
+
+xhr.get('/authenticate', json, (err, resp, body) => {
+  displayName.innerHTML = body.name;
+  if (body.isUser) userHeader.style.display = 'block';
+  else guestHeader.style.display = 'block';
 })
