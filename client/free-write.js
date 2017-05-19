@@ -33,7 +33,6 @@ function loadStory(story) {
   currentStory = story;
   wsTitle.value = story.title;
   ws.value = story.text;
-  console.log(currentStory);
 }
 
 function saveStory() {
@@ -55,12 +54,10 @@ function saveStory() {
 }
 
 function deleteStory() {
-  console.log('in deleteStory');
   ws.value = '';
   wsTitle.value = '';
   
   if (currentStory._id != null) {
-    console.log('delete a saved story');
     xhr({
       uri: '/delete-story',
       method: 'post',

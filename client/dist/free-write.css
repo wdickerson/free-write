@@ -1,14 +1,9 @@
 html, body {
-/*  overflow: hidden;*/
-  background-color: #f4f4f4;
+  background-color: #f7f7f7;
 }
 
 .user-info-header {
   display: none;
-}
-
-.user-info-container {
-  height: 1.5rem;
 }
 
 #workspace-title {
@@ -32,11 +27,17 @@ html, body {
   border: none;
 }
 
-#toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 3.5em;
+.nav-row {
+  min-height: 3.25rem;
+}
+
+.nav-filler {
+  height: 3rem;
+}
+
+.stories-dropdown {
+  position: absolute;
+  right: 0;
 }
 
 .btn {
@@ -46,6 +47,7 @@ html, body {
 }
 
 .logo {
+  font-size: .8rem;
   color: #466bb0;
 }
 

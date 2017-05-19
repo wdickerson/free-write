@@ -94,7 +94,7 @@ app.post('/delete-story', (req, res, next) => {
     db.collection('stories').deleteOne({ 
       _id: ObjectId(req.body._id), 
       userId: req.user.id 
-    });   
+    }, () => res.sendStatus(200));   
   }); 
 });
 
