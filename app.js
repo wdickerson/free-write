@@ -2,33 +2,25 @@
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
-const moment = require('moment');
 const MongoClient = require('mongodb').MongoClient;
 const fwc = require('./free-write-config');
 const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
+const ObjectId = require('mongodb').ObjectID;
 
 const app = express();
 app.use(express.static('client/dist/'));
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/export', (req, res, next) => {
-  res.attachment('Free Write ' + moment().format('M-D-YY h.ma') + '.txt');
-  res.send(req.body['user-text']);
+  res.attachment(req.body.title + '.txt');
+  res.send(req.body.text);
 });
 
-app.get('/get-stories', (req, res) => {  
-  MongoClient.connect(fwc.connStr, (err, db) => {
-    if (err) return res.send('db error');
-    db.collection('stories').find({}, {limit:10, sort:[['_id', 'desc']]}, (err, cursor) => {
-      if (err) return res.send('nested db error');
-      cursor.toArray((err, items) => res.json(items));
-    });   
-  });
+app.get('/get-universal-stories', (req, res) => {  
+  // placeholder
 });
-
-// Wip. Need to keep users in a mongo collection
-const users = [];
 
 const fbConfig = {
   clientID: fwc.fbAppId,
@@ -36,22 +28,21 @@ const fbConfig = {
   callbackURL: 'facebook-callback'
 };
 
-const fbStrategy = new FacebookStrategy(fbConfig, (access, refresh, profile, cb) => {
-  const myFbUser = users.find(u => u.fbid === profile.id); // Should query mongo
-  if (myFbUser) return cb(null, myFbUser);
-  const newFbUser = {
-    username: profile.displayName,
-    fbid: 1,
-    isUser: true,
-  }
-  users.push(newFbUser); // Should insert to mongo
-  return cb(null, newFbUser);
+const fbStrategy = new FacebookStrategy(fbConfig, (access, refresh, profile, cb) => {  
+  MongoClient.connect(fwc.connStr, (err, db) => {
+    db.collection('users').update({ id: profile.id }, profile, { upsert: true });   
+  });
+  return cb(null, profile);
 });
 
-passport.serializeUser((user, cb) => cb(null, user.username));
-passport.deserializeUser((username, cb) => cb(null, users.find(u => u.username === username)));
-passport.use(fbStrategy);
+passport.serializeUser((user, cb) => cb(null, user.id));
+passport.deserializeUser((id, cb) => {
+  MongoClient.connect(fwc.connStr, (err, db) => {
+    db.collection('users').findOne({ id }, (err, item) => cb(null, item));   
+  });  
+});
 
+passport.use(fbStrategy);
 app.use(session({ secret: fwc.sessionSecret }));
 app.use(passport.initialize());  
 app.use(passport.session());
@@ -65,8 +56,46 @@ app.get('/login/facebook-callback', passport.authenticate('facebook', {
 app.get('/fail', (req, res) => res.send('unknown user'));
 app.get('/logout', (req, res) => req.logout() || res.redirect('/'));
 app.get('/authenticate', (req, res) => {
-  if (req.isAuthenticated()) return res.json({ isUser: true, name: req.user.username });
+  if (req.isAuthenticated()) return res.json({ isUser: true, name: req.user.displayName });
   return res.json({ isUser: false, name: null });
+});
+
+app.get('/get-user-stories', (req, res) => {
+  if (!req.isAuthenticated()) return res.json([]);
+  MongoClient.connect(fwc.connStr, (err, db) => {
+    db.collection('stories').find({ userId: req.user.id }, { limit: 10, fields: {userId: 0}, sort: {title: 1}}, (err, cursor) => {
+      cursor.toArray((err, items) => res.json(items));
+    });   
+  });
+});
+
+app.post('/save-story', (req, res, next) => {
+  if (!req.isAuthenticated()) return res.json(null);
+  if (req.body.title === '') return res.send(null);
+  const query = {
+    _id: ObjectId(req.body._id),
+    userId: req.user.id
+  }
+  
+  const story = {
+    title: req.body.title,
+    text: req.body.text,
+    userId: req.user.id
+  }
+  
+  MongoClient.connect(fwc.connStr, (err, db) => {
+    db.collection('stories').findAndModify(query, null, story, { new: true, upsert: true }, (err, item) => res.send(item.value._id));   
+  });
+});
+
+app.post('/delete-story', (req, res, next) => {
+  if (!req.isAuthenticated()) return res.json(null);
+  MongoClient.connect(fwc.connStr, (err, db) => {
+    db.collection('stories').deleteOne({ 
+      _id: ObjectId(req.body._id), 
+      userId: req.user.id 
+    }, () => res.sendStatus(200));   
+  }); 
 });
 
 const port = process.env.PORT || 3000;
