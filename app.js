@@ -3,10 +3,12 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
-const fwc = require('./free-write-config');
 const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const ObjectId = require('mongodb').ObjectID;
+
+// Check if running locally and load config file
+const fwc = process.env.FW_LOCAL ? require('./free-write-config.local') : require('./free-write-config');
 
 const app = express();
 app.use(express.static('client/dist/'));

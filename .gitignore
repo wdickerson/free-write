@@ -3,5 +3,6 @@ node_modules/
 .sass-cache/
 *.css.map
 free-write-config.js
+free-write-config.local.js
 client/dist/bundle.js
 npm-debug.log
