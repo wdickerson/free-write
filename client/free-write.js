@@ -1,6 +1,4 @@
 import angular from 'angular';
-import 'bootstrap';
-import './free-write.scss';
 import './navControls.html';
 import './userInfo.html';
 
