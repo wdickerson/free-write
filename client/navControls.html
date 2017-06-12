@@ -1,0 +1,96 @@
+<div class='nav-control-container row mx-0 align-items-center justify-content-between'> 
+  <div class='stories-dropdown-container my-2'>
+    <div class='dropdown fw-dropdown'>
+      <span class='dropdown-toggle ml-1 mr-2 font-weight-bold fw-pointer' 
+            data-toggle='dropdown' 
+            aria-haspopup='true' 
+            aria-expanded='false'>
+      </span>
+      <div class='dropdown-menu stories-dropdown-list' aria-labelledby='dropdownMenuButton'>
+        <a class='dropdown-item fw-pointer' 
+           ng-click='setNewStory()'>
+          + New Story
+        </a>
+        <a ng-repeat='story in storiesList' 
+           ng-click='setCurrentStory(story)' 
+           class='dropdown-item fw-pointer'>
+          {{story.title}}
+        </a>
+      </div>        
+    </div>
+  </div>
+  <div class='story-title-container my-2 mr-2'>
+    <input class='p-1 px-2 fw-title-input' 
+           type="text" ng-if='editTitle' 
+           ng-blur='blurEditTitle()' 
+           placeholder='Title your story' 
+           autocomplete='off' 
+           autocorrect='off' 
+           autocapitalize='off' 
+           spellcheck='false' 
+           ng-model="currentStory.title" 
+           auto-focus />
+    <div class='current-story-title mx-2 fw-mouse' ng-if='!editTitle'>
+      {{currentStory.title}}
+    </div>
+    <span class='fw-pointer' ng-if='!editTitle' ng-click='toggleEditTitle()'>
+      &#x270E;
+    </span>
+  </div>
+  <div class='nav-buttons-container m-2'>
+    <button type='button' 
+            class='btn btn-primary'
+            ng-click='blurClick()'>
+      Blur
+    </button>
+<!--
+    <input type='submit' 
+           value='Download' 
+           class='btn btn-success disabled' />
+-->
+    <button type='button' 
+            class='btn btn-success'
+            ng-click='saveCurrentStory()'
+            ng-disabled="!isUser || !unsavedChanges"
+            ng-class="{ 'disabled': !isUser || !unsavedChanges }">
+      Save
+    </button>
+    <button type="button" 
+            class="btn btn-danger" 
+            data-toggle="modal" 
+            data-target="#delete-modal"
+            ng-disabled="!isUser"
+            ng-class="{ 'disabled': !isUser }">
+      Delete
+    </button>
+  </div> 
+</div>  
+
+<!-- Modal -->
+<div class="modal fade" id="delete-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Delete Story</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cancel">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete {{currentStory.title}}?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" 
+                data-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" 
+                class="btn btn-danger" 
+                ng-click='deleteCurrentStory()'
+                data-dismiss="modal">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

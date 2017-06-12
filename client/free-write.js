@@ -1,95 +1,88 @@
-const xhr = require('xhr');
-const wsTitle = document.getElementById('workspace-title');
-const ws = document.getElementById('workspace');
-const blurBtn = document.getElementById('blur-btn');
-const saveBtn = document.getElementById('save-btn');
-const deleteBtn = document.getElementById('delete-btn');
-const newStoryBtn = document.getElementById('new-story-btn');
-const storiesList = document.getElementById('stories-list');
-const userHeader = document.getElementById('user-header');
-const displayName = document.getElementById('display-name');
-const guestHeader = document.getElementById('guest-header');
+import angular from 'angular';
+import './navControls.html';
+import './userInfo.html';
 
-let currentStory = {};
-let stories = [];
+// Angular stuff
+const app = angular.module('freeWrite', [])
+  .controller('FreeWriteController', function FreeWriteController($scope, $http) {
 
-let blurred = false;
-blurBtn.addEventListener('click', () => {
-  ws.style.color = blurred ? 'black' : 'transparent';
-  ws.style.textShadow = blurred ? 'none' : '0 0 25px gray';
-  blurred = !blurred;
-});
-
-saveBtn.addEventListener('click', saveStory);
-deleteBtn.addEventListener('click', deleteStory);
-
-newStoryBtn.addEventListener('click', () => {
-  ws.value = '';
-  wsTitle.value = '';
-  currentStory = {};
-});
-
-function loadStory(story) {
-  currentStory = story;
-  wsTitle.value = story.title;
-  ws.value = story.text;
-}
-
-function saveStory() {
-  currentStory.title = wsTitle.value;
-  currentStory.text = ws.value;
+    $scope.currentStory = {
+      title: '',
+      text: '',
+      _id: null
+    };
+    
+    $scope.editTitle = true;
+    $scope.isUser = false;
+    $scope.displayName = 'bob';
+    $scope.blurWorkspace = false;
+    $scope.unsavedChanges = false;
   
-  xhr({
-    uri: '/save-story',
-    method: 'post',
-    json: true,
-    body: currentStory,
-  }, (err, resp, body) => {
-    if (currentStory._id == null && body != null) {
-      currentStory._id = body;
-      stories.push(currentStory);
+    $scope.setCurrentStory = story => {
+      $scope.currentStory = story;
+      $scope.editTitle = false;
+      $scope.unsavedChanges = false;
     }
-    populateStoriesList();
-  });
-}
-
-function deleteStory() {
-  ws.value = '';
-  wsTitle.value = '';
+    
+    $scope.setNewStory = () => {
+      $scope.currentStory = {
+        title: '',
+        text: '',
+        _id: null
+      }
+      $scope.editTitle = true;
+      $scope.unsavedChanges = false;
+    };
+    
+    this.setStoriesList = d => $scope.storiesList = d.data; 
+    this.setStoriesListError = err => console.log(err);
+    
+    $scope.deleteCurrentStory = () => {
+      const deleteId = $scope.currentStory._id;
+      $scope.setNewStory();
+      if (deleteId != null) {
+        $http.post('/delete-story', { _id: deleteId }).then(res => {
+          $scope.storiesList = $scope.storiesList.filter(s => s._id !== deleteId);
+          $scope.storiesList.sort((a, b) => a.title.localeCompare(b.title));
+        });        
+      }
+    }    
+    
+    $scope.saveCurrentStory = () => {
+      if ($scope.editTitle) return false; // Called below
+      $http.post('/save-story', $scope.currentStory).then(res => {
+        if ($scope.currentStory._id == null && res.data != null) {
+          $scope.currentStory._id = res.data;
+          $scope.storiesList.push($scope.currentStory);
+        }
+        $scope.storiesList.sort((a, b) => a.title.localeCompare(b.title));
+      });
+      $scope.unsavedChanges = false;
+    }
+    
+    $scope.blurClick = () => $scope.blurWorkspace = !$scope.blurWorkspace;
+    $scope.toggleEditTitle = () => $scope.editTitle = !$scope.editTitle;
+    $scope.blurEditTitle = () => {
+      if ($scope.currentStory.title !== '') {
+        $scope.editTitle = false;
+        $scope.saveCurrentStory();
+      }
+    }
   
-  if (currentStory._id != null) {
-    xhr({
-      uri: '/delete-story',
-      method: 'post',
-      json: true,
-      body: { _id: currentStory._id },
-    }, (err, resp, body) => {
-      stories = stories.filter(s => s._id !== currentStory._id);
-      currentStory = {};
-      populateStoriesList();
-    });
-  }
-}
+    $http.get('/get-user-stories').then(this.setStoriesList, this.setStoriesListError);  
+    $http.get('/authenticate').then(res => {
+      $scope.displayName = res.data.name;
+      $scope.isUser = res.data.isUser;
+    });  
+    
+    window.onbeforeunload = () => {
+      if ($scope.unsavedChanges) return true;
+    }    
+  });
 
-function populateStoriesList(newList = false) {
-  if (newList) stories = newList;
-  storiesList.innerHTML = '';
-  stories.sort((a, b) => a.title.localeCompare(b.title));
-  stories.forEach(s => {
-    const newItem = document.createElement('a');
-    newItem.innerHTML = s.title;
-    newItem.className = 'dropdown-item';
-    newItem.addEventListener('click', () => loadStory(s));
-    storiesList.appendChild(newItem);
-  });  
-}
+app.directive('navControls', () => ({ templateUrl: 'navControls.html' }));
+app.directive('userInfo', () => ({ templateUrl: 'userInfo.html' }));
 
-const json = { json: true };
-xhr.get('/get-user-stories', json, (err, resp, body) => populateStoriesList(body));
-
-
-xhr.get('/authenticate', json, (err, resp, body) => {
-  displayName.innerHTML = body.name;
-  if (body.isUser) userHeader.style.display = 'block';
-  else guestHeader.style.display = 'block';
-})
+app.directive('autoFocus', () => {  
+  return (scope, elem, attr) =>  elem[0].focus();
+});

@@ -1,14 +1,14 @@
 {
   "name": "free-write",
-  "version": "0.4.0",
+  "version": "0.7.0",
   "description": "",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack ./client/free-write.js client/dist/bundle.js",
+    "build": "webpack",
     "start": "npm run build && node ./app.js",
-    "start_local": "nodemon --ignore './client/dist' -e js,html,css --exec 'npm run watch'",
-    "watch": "npm run build && node ./app.js"
+    "local": "nodemon --ignore './client/dist' -e js,html,scss --exec 'npm run watch'",
+    "watch": "npm run build && FW_LOCAL=true node ./app.js"
   },
   "repository": {
     "type": "git",
@@ -25,13 +25,32 @@
   },
   "homepage": "https://github.com/wdickerson/free-write#readme",
   "dependencies": {
+    "angular": "^1.6.4",
     "body-parser": "^1.15.2",
+    "bootstrap": "^4.0.0-alpha.6",
+    "bootstrap-loader": "^2.1.0",
+    "bootstrap-sass": "^3.3.7",
+    "css-loader": "^0.28.4",
+    "exports-loader": "^0.6.4",
     "express": "^4.14.0",
     "express-session": "^1.14.2",
+    "extract-loader": "^0.1.0",
+    "extract-text-webpack-plugin": "^2.1.0",
+    "file-loader": "^0.11.1",
+    "html-loader": "^0.4.5",
+    "imports-loader": "^0.7.1",
+    "jquery": "^3.2.1",
     "mongodb": "^2.2.16",
+    "node-sass": "^4.5.3",
     "passport": "^0.3.2",
     "passport-facebook": "^2.1.1",
     "passport-local": "^1.0.0",
+    "postcss-loader": "^2.0.5",
+    "resolve-url-loader": "^2.0.2",
+    "sass-loader": "^6.0.5",
+    "style-loader": "^0.17.0",
+    "tether": "^1.4.0",
+    "url-loader": "^0.5.8",
     "webpack": "^2.5.1",
     "xhr": "^2.4.0"
   }

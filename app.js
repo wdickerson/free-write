@@ -3,10 +3,12 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
-const fwc = require('./free-write-config');
 const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const ObjectId = require('mongodb').ObjectID;
+
+// Check if running locally and load config file
+const fwc = process.env.FW_LOCAL ? require('./free-write-config.local') : require('./free-write-config');
 
 const app = express();
 app.use(express.static('client/dist/'));
@@ -35,12 +37,9 @@ const fbStrategy = new FacebookStrategy(fbConfig, (access, refresh, profile, cb)
   return cb(null, profile);
 });
 
-passport.serializeUser((user, cb) => cb(null, user.id));
-passport.deserializeUser((id, cb) => {
-  MongoClient.connect(fwc.connStr, (err, db) => {
-    db.collection('users').findOne({ id }, (err, item) => cb(null, item));   
-  });  
-});
+// deserialize user could also query the database, if desired
+passport.serializeUser((user, cb) => cb(null, { id: user.id, displayName: user.displayName }));
+passport.deserializeUser((input, cb) => cb(null, input));
 
 passport.use(fbStrategy);
 app.use(session({ secret: fwc.sessionSecret }));
@@ -56,14 +55,19 @@ app.get('/login/facebook-callback', passport.authenticate('facebook', {
 app.get('/fail', (req, res) => res.send('unknown user'));
 app.get('/logout', (req, res) => req.logout() || res.redirect('/'));
 app.get('/authenticate', (req, res) => {
-  if (req.isAuthenticated()) return res.json({ isUser: true, name: req.user.displayName });
+  if (req.isAuthenticated()) {
+    return res.json({ 
+      isUser: true, 
+      name: req.user.displayName.split(' ')[0]
+    });
+  }
   return res.json({ isUser: false, name: null });
 });
 
 app.get('/get-user-stories', (req, res) => {
   if (!req.isAuthenticated()) return res.json([]);
   MongoClient.connect(fwc.connStr, (err, db) => {
-    db.collection('stories').find({ userId: req.user.id }, { limit: 10, fields: {userId: 0}, sort: {title: 1}}, (err, cursor) => {
+    db.collection('stories').find({ userId: req.user.id }, { fields: {userId: 0}, sort: {title: 1}}, (err, cursor) => {
       cursor.toArray((err, items) => res.json(items));
     });   
   });
