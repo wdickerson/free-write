@@ -1,38 +1,88 @@
-const ws = document.getElementById('workspace');
-const blurBtn = document.getElementById('blur-btn');
-const storiesList = document.getElementById('stories-list');
-let blurred = false;
+import angular from 'angular';
+import './navControls.html';
+import './userInfo.html';
 
-blurBtn.addEventListener('click', blurClick);
+// Angular stuff
+const app = angular.module('freeWrite', [])
+  .controller('FreeWriteController', function FreeWriteController($scope, $http) {
 
-function blurClick(e) {
-  ws.style.color = 'black';
-  ws.style.textShadow = 'none';
-  if (!blurred) {
-    ws.style.color = 'transparent';
-    ws.style.textShadow = '0 0 25px gray';
-  } 
-  blurred = !blurred;
-}
-
-var xhttp = new XMLHttpRequest();
-xhttp.onreadystatechange = function() {
-  let myStories = [];
-  if (this.readyState == 4 && this.status == 200) {
-    myStories = JSON.parse(this.responseText);
-  }
+    $scope.currentStory = {
+      title: '',
+      text: '',
+      _id: null
+    };
+    
+    $scope.editTitle = true;
+    $scope.isUser = false;
+    $scope.displayName = 'bob';
+    $scope.blurWorkspace = false;
+    $scope.unsavedChanges = false;
   
-  myStories.forEach(s => {
-    var newItem = document.createElement('a');
-    newItem.innerHTML = s.name;
-    newItem.className = 'dropdown-item';
-    newItem.setAttribute('href', '#');
-    newItem.addEventListener('click', () => {
-      ws.value = s.text;
-    })
-    storiesList.appendChild(newItem);
+    $scope.setCurrentStory = story => {
+      $scope.currentStory = story;
+      $scope.editTitle = false;
+      $scope.unsavedChanges = false;
+    }
+    
+    $scope.setNewStory = () => {
+      $scope.currentStory = {
+        title: '',
+        text: '',
+        _id: null
+      }
+      $scope.editTitle = true;
+      $scope.unsavedChanges = false;
+    };
+    
+    this.setStoriesList = d => $scope.storiesList = d.data; 
+    this.setStoriesListError = err => console.log(err);
+    
+    $scope.deleteCurrentStory = () => {
+      const deleteId = $scope.currentStory._id;
+      $scope.setNewStory();
+      if (deleteId != null) {
+        $http.post('/delete-story', { _id: deleteId }).then(res => {
+          $scope.storiesList = $scope.storiesList.filter(s => s._id !== deleteId);
+          $scope.storiesList.sort((a, b) => a.title.localeCompare(b.title));
+        });        
+      }
+    }    
+    
+    $scope.saveCurrentStory = () => {
+      if ($scope.editTitle) return false; // Called below
+      $http.post('/save-story', $scope.currentStory).then(res => {
+        if ($scope.currentStory._id == null && res.data != null) {
+          $scope.currentStory._id = res.data;
+          $scope.storiesList.push($scope.currentStory);
+        }
+        $scope.storiesList.sort((a, b) => a.title.localeCompare(b.title));
+      });
+      $scope.unsavedChanges = false;
+    }
+    
+    $scope.blurClick = () => $scope.blurWorkspace = !$scope.blurWorkspace;
+    $scope.toggleEditTitle = () => $scope.editTitle = !$scope.editTitle;
+    $scope.blurEditTitle = () => {
+      if ($scope.currentStory.title !== '') {
+        $scope.editTitle = false;
+        $scope.saveCurrentStory();
+      }
+    }
+  
+    $http.get('/get-user-stories').then(this.setStoriesList, this.setStoriesListError);  
+    $http.get('/authenticate').then(res => {
+      $scope.displayName = res.data.name;
+      $scope.isUser = res.data.isUser;
+    });  
+    
+    window.onbeforeunload = () => {
+      if ($scope.unsavedChanges) return true;
+    }    
   });
-};
 
-xhttp.open("GET", "/api/get-stories", true);
-xhttp.send();
+app.directive('navControls', () => ({ templateUrl: 'navControls.html' }));
+app.directive('userInfo', () => ({ templateUrl: 'userInfo.html' }));
+
+app.directive('autoFocus', () => {  
+  return (scope, elem, attr) =>  elem[0].focus();
+});

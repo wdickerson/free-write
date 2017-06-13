@@ -1,0 +1,111 @@
+html, body {
+  background-color: #f7f7f7;
+}
+
+.fw-logo {
+  font-size: 1em;
+  letter-spacing: -.4px;
+}
+
+.fw-sub-logo-span {
+  font-weight: 100;
+  letter-spacing: -.9px;
+}
+
+.fb-login {
+  height: 1.8em;
+}
+
+.workspace {
+  color: black;
+  text-shadow: none;
+  height: calc(100vh - .5rem);
+  padding: 2em;
+  font-size: 1.2rem;
+  line-height: 1.8rem;
+  box-shadow: 0px 0px 3px #bfbfbf;
+  border: none;
+}
+
+.workspace-blurred {
+  color: transparent;
+  text-shadow: 0 0 18px gray;
+}
+
+.btn {
+  border-radius: 0px;
+  margin: 0em .15em;
+  box-shadow: 0px 0px 3px #bfbfbf;
+}
+
+.logo {
+  font-size: .8rem;
+  color: #466bb0;
+}
+
+.nav-control-container {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  min-height: 4rem;
+  flex-wrap: wrap-reverse;
+}
+
+.current-story-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fw-title-input {
+  width: 100%;
+}
+
+.dropdown-toggle {
+  font-size: 1.25em;
+}
+
+.stories-dropdown-list {
+  border-radius: 0;
+  max-width: 90vw;
+  overflow: hidden;
+  
+  * {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis; 
+  }
+}
+
+.stories-dropdown-container {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+.story-title-container {
+  display: flex;
+  font-size: 1.35em;
+  //overflow: hidden;
+  min-width: 200px;
+  flex: 1 1 200px;
+}
+
+.nav-buttons-container {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+// Custom responsive rules
+@include media-breakpoint-up(md) {
+  .nav-control-container {
+    flex-wrap: nowrap;
+  }
+}
+
+// Utilities
+.fw-pointer {
+  cursor: pointer;
+}
+
+.fw-mouse {
+  cursor: default;
+}
